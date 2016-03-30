@@ -1,18 +1,13 @@
 ; Hello world?!
 
-org 0x100
+org 0x0
 
 main:
-ld a, 0x1
-ld b, 0x2
-add a, b
-call foo
-
-foo:
-ld a, 0
-ld b, 0
-ret
+    nop
+    nop
+    nop
+    nop
+    jp main
 
 hello:
-defb "Hello world!", 0
-
+    defb "Hello world!", 0
