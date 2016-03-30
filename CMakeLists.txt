@@ -5,3 +5,4 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 set(SOURCE_FILES main.c)
 add_executable(z80playground ${SOURCE_FILES})
+target_link_libraries(z80playground z80ex)
