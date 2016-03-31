@@ -29,22 +29,22 @@ void load(const char *filename, void *destination, const int max_len) {
 Z80EX_BYTE read_memory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, int m1_state, void *machine) {
     Z80EX_BYTE value;
     value = ((MACHINE *)machine)->mem[addr];
-    printf("read_memory: %.4X %.2X\n", addr, value);
+    printf("r %.4X %.2X\n", addr, value);
     return value;
 }
 
 void write_memory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, Z80EX_BYTE value, void *machine) {
-    printf("write_memory: %.4X %.2X\n", addr, value);
+    printf("w %.4X %.2X\n", addr, value);
     ((MACHINE *)machine)->mem[addr] = value;
 }
 
 Z80EX_BYTE read_port(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *machine) {
-    printf("read_port:\n");
+    printf("i \n");
     return 0x00;
 }
 
 void write_port(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *machine) {
-    printf("write_port:\n");
+    printf("0 \n");
     // nop!
 }
 
@@ -67,7 +67,7 @@ int main() {
             interrupt_vector_read, &machine
     );
 
-    for(int i = 0; i < 0xf; i++) {
+    for(int i = 0; i < 64; i++) {
         z80ex_step(cpu);
     }
 
