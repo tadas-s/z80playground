@@ -1,11 +1,24 @@
 #include <stdio.h>
-#include <math.h>
-#include <limits.h>
+#include <unistd.h>
+#include <ncurses.h>
 #include <z80ex/z80ex.h>
 
 typedef struct {
+    // Just a 64kb chunk, everything is writeable
     Z80EX_BYTE mem[0xffff];
 } MACHINE;
+
+void console_output(Z80EX_BYTE value) {
+    printw("%c", value);
+}
+
+uint8_t console_input_available(MACHINE *machine) {
+    return 0;
+}
+
+Z80EX_BYTE console_input_read(MACHINE *machine) {
+    return 0x00;
+}
 
 void load(const char *filename, void *destination, const int max_len) {
     int flen;
@@ -29,33 +42,50 @@ void load(const char *filename, void *destination, const int max_len) {
 Z80EX_BYTE read_memory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, int m1_state, void *machine) {
     Z80EX_BYTE value;
     value = ((MACHINE *)machine)->mem[addr];
-    printf("r %.4X %.2X\n", addr, value);
+    printw("r %.4X %.2X\n", addr, value);
     return value;
 }
 
 void write_memory(Z80EX_CONTEXT *cpu, Z80EX_WORD addr, Z80EX_BYTE value, void *machine) {
-    printf("w %.4X %.2X\n", addr, value);
+    printw("w %.4X %.2X\n", addr, value);
     ((MACHINE *)machine)->mem[addr] = value;
 }
 
 Z80EX_BYTE read_port(Z80EX_CONTEXT *cpu, Z80EX_WORD port, void *machine) {
-    printf("i \n");
-    return 0x00;
+    Z80EX_BYTE value;
+
+    switch (port) {
+        case 0xff00: value = console_input_available(machine); break;
+        case 0xff01: value = console_input_read(machine); break;
+        default: value = 0x00; break;
+    }
+
+    printw("i %.4X %.2X\n", port, value);
+
+    return value;
 }
 
 void write_port(Z80EX_CONTEXT *cpu, Z80EX_WORD port, Z80EX_BYTE value, void *machine) {
-    printf("0 \n");
-    // nop!
+    printw("o %.4X %.2X\n", port, value);
+
+    switch (port) {
+        case 0xff00: console_output(value); break;
+        default: break;
+    }
 }
 
 Z80EX_BYTE interrupt_vector_read(Z80EX_CONTEXT *cpu, void *machine) {
-    printf("interrupt_vector_read:\n");
+    printw("interrupt_vector_read:\n");
     return 0x00;
 }
 
 int main() {
     Z80EX_CONTEXT *cpu;
     MACHINE machine;
+
+    initscr();
+    nodelay(stdscr, TRUE);
+    scrollok(stdscr, TRUE);
 
     load("a.bin", machine.mem, 0xffff);
 
@@ -69,7 +99,10 @@ int main() {
 
     for(int i = 0; i < 64; i++) {
         z80ex_step(cpu);
+        refresh();
     }
 
+    sleep(5);
+    endwin();
     return 0;
 }
